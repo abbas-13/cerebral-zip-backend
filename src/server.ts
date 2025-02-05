@@ -2,6 +2,7 @@ import cors from "cors";
 import express, { type Express } from "express";
 import helmet from "helmet";
 import { pino } from "pino";
+import { Pool } from "pg";
 
 import { openAPIRouter } from "@/api-docs/openAPIRouter";
 import { healthCheckRouter } from "@/api/healthCheck/healthCheckRouter";
@@ -26,6 +27,44 @@ app.use(rateLimiter);
 
 // Request logging
 app.use(requestLogger);
+
+const pool = new Pool({
+  user: env.DB_USER,
+  host: env.DB_HOST,
+  database: env.DB_NAME,
+  password: env.DB_PASSWORD,
+  port: env.DB_PORT,
+});
+
+app.get("/api/sales_comparison", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM sales_comparison");
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server Error");
+  }
+});
+
+app.get("/api/sales", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM sales");
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server Error");
+  }
+});
+
+app.get("/api/products", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM products");
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server Error");
+  }
+});
 
 // Routes
 app.use("/health-check", healthCheckRouter);
